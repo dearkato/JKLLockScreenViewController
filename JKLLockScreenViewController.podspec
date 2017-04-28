@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
     'Choi Joong Kwan' => 'joongkwan.choi@gmail.com'
   }
   s.source = {
-    :git => 'https://github.com/tiny2n/JKLLockScreenViewController.git',
+    :git => 'https://github.com/dearkato/JKLLockScreenViewController.git',
     :tag => s.version.to_s
   }
   s.homepage     = "http://tiny2n.tistory.com"
