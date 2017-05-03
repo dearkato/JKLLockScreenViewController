@@ -27,6 +27,7 @@ static const NSTimeInterval LSVShakeAnimationDuration = 0.5f;
 @property (strong, nonatomic) IBOutletCollection(JKLLockScreenNumber) NSArray *numberButtons;
 
 @property (nonatomic, weak) IBOutlet JKLLockScreenPincodeView * pincodeView;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *titleLabelTopConstraint;
 
 @end
 
@@ -35,24 +36,28 @@ static const NSTimeInterval LSVShakeAnimationDuration = 0.5f;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+    _cancelButton.titleLabel.textAlignment = UITextAlignmentCenter;
     switch (_lockScreenMode) {
         case LockScreenModeVerification:
         case LockScreenModeNormal: {
             // [일반 모드] Cancel 버튼 감춤
-            [_cancelButton setHidden:YES];
+            [_cancelButton setTitle:NSLocalizedStringFromTable(@"Pincode Cancel Button Title",    @"JKLockScreen", nil) forState:UIControlStateNormal];
+            [self lsv_updateTitle:NSLocalizedStringFromTable(@"Pincode Title",    @"JKLockScreen", nil)
+                                                       subtitle:NSLocalizedStringFromTable(@"Pincode Subtitle", @"JKLockScreen", nil)];
+            
+            break;
         }
         case LockScreenModeNew: {
-            // [신규 모드]
-            [self lsv_updateTitle:NSLocalizedStringFromTable(@"Pincode Title",    @"JKLockScreen", nil)
-                         subtitle:NSLocalizedStringFromTable(@"Pincode Subtitle", @"JKLockScreen", nil)];
+            [_cancelButton setTitle:NSLocalizedStringFromTable(@"New Pincode Cancel Button Title",    @"JKLockScreen", nil) forState:UIControlStateNormal];
+            [self lsv_updateTitle:NSLocalizedStringFromTable(@"New Pincode Title",    @"JKLockScreen", nil)
+                         subtitle:NSLocalizedStringFromTable(@"New Pincode Subtitle", @"JKLockScreen", nil)];
             
             break;
         }
         case LockScreenModeChange:
-            // [변경 모드]
-            [self lsv_updateTitle:NSLocalizedStringFromTable(@"New Pincode Title",    @"JKLockScreen", nil)
-                         subtitle:NSLocalizedStringFromTable(@"New Pincode Subtitle", @"JKLockScreen", nil)];
+        [_cancelButton setTitle:NSLocalizedStringFromTable(@"Change Pincode Cancel Button Title",    @"JKLockScreen", nil) forState:UIControlStateNormal];
+            [self lsv_updateTitle:NSLocalizedStringFromTable(@"Change Pincode Title",    @"JKLockScreen", nil)
+                         subtitle:NSLocalizedStringFromTable(@"Change Pincode Subtitle", @"JKLockScreen", nil)];
             break;
     }
     
@@ -192,26 +197,49 @@ static const NSTimeInterval LSVShakeAnimationDuration = 0.5f;
     CAAnimation * shake = [self lsv_makeShakeAnimation];
     [_pincodeView.layer addAnimation:shake forKey:@"shake"];
     [_pincodeView setEnabled:NO];
-    [_subtitleLabel setText:NSLocalizedStringFromTable(@"Pincode Not Match Title", @"JKLockScreen", nil)];
+    switch (_lockScreenMode) {
+        case LockScreenModeNormal:
+            [_subtitleLabel setText:NSLocalizedStringFromTable(@"Pincode Wrong Title", @"JKLockScreen", nil)];
+            break;
+        case LockScreenModeNew: 
+        case LockScreenModeChange:
+            // [변경 모드]
+            [_subtitleLabel setText:NSLocalizedStringFromTable(@"Pincode Not Match Title", @"JKLockScreen", nil)];
+            break;
+        default:
+            break;
+    }
+    
+    [_subtitleLabel setBackgroundColor:[UIColor redColor]];
+    [_subtitleLabel.layer setCornerRadius:6.0];
+    _subtitleLabel.clipsToBounds = YES;
+
     
     dispatch_time_t delayInSeconds = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(LSVShakeAnimationDuration * NSEC_PER_SEC));
     dispatch_after(delayInSeconds, dispatch_get_main_queue(), ^(void){
         [_pincodeView setEnabled:YES];
         [_pincodeView initPincode];
         
+        [_subtitleLabel setBackgroundColor:[UIColor clearColor]];
+        [_subtitleLabel.layer setCornerRadius:.0];
+        _subtitleLabel.clipsToBounds = YES;
+
         switch (_lockScreenMode) {
             case LockScreenModeNormal:
-            case LockScreenModeNew: {
-                // [신규 모드]
                 [self lsv_updateTitle:NSLocalizedStringFromTable(@"Pincode Title",    @"JKLockScreen", nil)
                              subtitle:NSLocalizedStringFromTable(@"Pincode Subtitle", @"JKLockScreen", nil)];
+                break;
+            case LockScreenModeNew: {
+                // [신규 모드]
+                [self lsv_updateTitle:NSLocalizedStringFromTable(@"New Pincode Title",    @"JKLockScreen", nil)
+                             subtitle:NSLocalizedStringFromTable(@"New Pincode Subtitle", @"JKLockScreen", nil)];
                 
                 break;
             }
             case LockScreenModeChange:
                 // [변경 모드]
-                [self lsv_updateTitle:NSLocalizedStringFromTable(@"New Pincode Title",    @"JKLockScreen", nil)
-                             subtitle:NSLocalizedStringFromTable(@"New Pincode Subtitle", @"JKLockScreen", nil)];
+                [self lsv_updateTitle:NSLocalizedStringFromTable(@"Change Pincode Title",    @"JKLockScreen", nil)
+                             subtitle:NSLocalizedStringFromTable(@"Change Pincode Subtitle", @"JKLockScreen", nil)];
                 break;
             default:
                 break;
